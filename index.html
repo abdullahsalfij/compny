@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الإيجارات</title>
+    <!-- استدعاء أيقونات FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #121212;
+            --surface-color: #1E1E1E;
+            --surface-card: #2A2A2A;
+            --primary-color: #FFD700;
+            --secondary-color: #DAA520;
+            --text-color: #ffffff;
+            --text-muted: #b0b0b0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Tahoma, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #181818;
+            padding: 15px 25px;
+            border-radius: 12px;
+            border: 1px solid var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 22px;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: #000;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+        }
+
+        .btn-danger {
+            background-color: #ff4d4d;
+            color: #fff;
+        }
+
+        .categories-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .category-card {
+            background-color: var(--surface-color);
+            border: 1px solid var(--primary-color);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .category-header {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            background-color: #1a1a1a;
+        }
+
+        .category-info h3 {
+            color: var(--primary-color);
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .category-info p {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .category-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .tenants-list {
+            padding: 15px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            background-color: var(--surface-color);
+            border-top: 1px solid #333;
+        }
+
+        .tenant-item {
+            background-color: var(--surface-card);
+            padding: 12px 15px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .tenant-details h4 {
+            color: var(--primary-color);
+            font-size: 15px;
+            margin-bottom: 3px;
+        }
+
+        .tenant-details p {
+            color: var(--text-muted);
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .tenant-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .check-btn {
+            color: #777;
+        }
+
+        .check-btn.paid {
+            color: #00e676;
+        }
+
+        .delete-btn {
+            color: #ff4d4d;
+        }
+
+        /* تصميم نوافذ الإدخال المنبثقة (Modals) */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: var(--surface-color);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--primary-color);
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .modal-content h2 {
+            color: var(--primary-color);
+            font-size: 18px;
+        }
+
+        .form-control {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-control label {
+            color: var(--primary-color);
+            font-size: 13px;
+        }
+
+        .form-control input {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            background-color: #2a2a2a;
+            color: #fff;
+            outline: none;
+        }
+
+        .form-control input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            margin-top: 50px;
+        }
+
+        /* زر الإضافة العائم */
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            width: 60px;
+            height: 60px;
+            background-color: var(--primary-color);
+            color: #000;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            cursor: pointer;
+            border: none;
+            transition: 0.2s;
+        }
+
+        .fab:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1><i class="fa-solid fa-building"></i> إدارة الايجارات</h1>
+        <button class="btn btn-outline" onclick="resetAllMonths()"><i class="fa-solid fa-rotate"></i> تحديث الشهور (تصفير)</button>
+    </header>
+
+    <div id="app" class="categories-container">
+        <!-- يتم توليد القوائم هنا برمجياً -->
+    </div>
+
+    <div id="emptyState" class="empty-state" style="display: none;">
+        <p>لا توجد قوائم مضافة حالياً. اضغط على زر + لإنشاء قائمة جديدة</p>
+    </div>
+
+    <!-- زر إضافة قائمة جديدة -->
+    <button class="fab" onclick="openCategoryModal()"><i class="fa-solid fa-plus"></i></button>
+
+    <!-- نافذة إضافة قائمة -->
+    <div id="categoryModal" class="modal">
+        <div class="modal-content">
+            <h2>إضافة قائمة جديدة</h2>
+            <div class="form-control">
+                <label>اسم القائمة</label>
+                <input type="text" id="categoryNameInput" placeholder="أدخل اسم القائمة">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-outline" onclick="closeCategoryModal()">إلغاء</button>
+                <button class="btn" onclick="saveCategory()">إضافة</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة إضافة مؤجر -->
+    <div id="tenantModal" class="modal">
+        <div class="modal-content">
+            <h2>إضافة مؤجر جديد</h2>
+            <div class="form-control">
+                <label>اسم المؤجر</label>
+                <input type="text" id="tenantNameInput" placeholder="الاسم">
+            </div>
+            <div class="form-control">
+                <label>رقم التواصل</label>
+                <input type="tel" id="tenantPhoneInput" placeholder="رقم الهاتف">
+            </div>
+            <div class="form-control">
+                <label>سعر الإيجار</label>
+                <input type="number" id="tenantPriceInput" placeholder="المبلغ">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-outline" onclick="closeTenantModal()">إلغاء</button>
+                <button class="btn" onclick="saveTenant()">حفظ</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // هيكل البيانات الأساسي (يتم جلبه من التخزين المحلي أو مصفوفة فارغة)
+        let categories = JSON.parse(localStorage.getItem('web_tenant_categories')) || [];
+        let currentCategoryIndex = null;
+
+        function saveData() {
+            localStorage.setItem('web_tenant_categories', JSON.stringify(categories));
+            renderApp();
+        }
+
+        function renderApp() {
+            const appContainer = document.getElementById('app');
+            const emptyState = document.getElementById('emptyState');
+            appContainer.innerHTML = '';
+
+            if (categories.length === 0) {
+                emptyState.style.display = 'block';
+                return;
+            } else {
+                emptyState.style.display = 'none';
+            }
+
+            categories.forEach((cat, catIndex) => {
+                let catTotalPrice = cat.tenants.reduce((sum, t) => sum + Number(t.price), 0);
+                let catPaidPrice = cat.tenants.filter(t => t.hasPaid).reduce((sum, t) => sum + Number(t.price), 0);
+
+                let card = document.createElement('div');
+                card.className = 'category-card';
+
+                let tenantsHtml = '';
+                cat.tenants.forEach((tenant, tenantIndex) => {
+                    tenantsHtml += `
+                        <div class="tenant-item">
+                            <div class="tenant-details">
+                                <h4>${tenant.name}</h4>
+                                <p>الهاتف: ${tenant.phone || 'غير متوفر'}<br>السعر: ${tenant.price} ر.س</p>
+                            </div>
+                            <div class="tenant-actions">
+                                <button class="icon-btn check-btn ${tenant.hasPaid ? 'paid' : ''}" onclick="togglePaid(${catIndex}, ${tenantIndex})" title="تأكيد الدفع">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                </button>
+                                <button class="icon-btn delete-btn" onclick="deleteTenant(${catIndex}, ${tenantIndex})" title="حذف المؤجر">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div class="category-header" onclick="toggleCategory(this)">
+                        <div class="category-info">
+                            <h3><i class="fa-solid fa-folder-open"></i> ${cat.categoryName}</h3>
+                            <p>إجمالي الإيجارات: ${catTotalPrice} ر.س | المحصل: ${catPaidPrice} ر.س</p>
+                        </div>
+                        <div class="category-actions" onclick="event.stopPropagation()">
+                            <button class="btn" style="padding: 6px 12px; font-size: 13px;" onclick="openTenantModal(${catIndex})"><i class="fa-solid fa-user-plus"></i> إضافة مؤجر</button>
+                            <button class="icon-btn delete-btn" onclick="deleteCategory(${catIndex})" title="حذف القائمة"><i class="fa-solid fa-trash"></i></button>
+                            <i class="fa-solid fa-chevron-down" style="color: var(--primary-color);"></i>
+                        </div>
+                    </div>
+                    <div class="tenants-list">
+                        ${tenantsHtml.length > 0 ? tenantsHtml : '<p style="color:var(--text-muted); text-align:center;">لا يوجد مؤجرين في هذه القائمة</p>'}
+                    </div>
+                `;
+                appContainer.appendChild(card);
+            });
+        }
+
+        // فتح وإغلاق القوائم المنسدلة
+        function toggleCategory(headerElement) {
+            let list = headerElement.nextElementSibling;
+            let icon = headerElement.querySelector('.fa-chevron-down');
+            if (list.style.display === 'flex') {
+                list.style.display = 'none';
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                list.style.display = 'flex';
+                icon.style.transform = 'rotate(180deg)';
+            }
+        }
+
+        // النوافذ المنبثقة
+        function openCategoryModal() {
+            document.getElementById('categoryNameInput').value = '';
+            document.getElementById('categoryModal').style.display = 'flex';
+        }
+        function closeCategoryModal() {
+            document.getElementById('categoryModal').style.display = 'none';
+        }
+        function saveCategory() {
+            let name = document.getElementById('categoryNameInput').value.trim();
+            if (!name) return;
+            categories.push({ categoryName: name, tenants: [] });
+            saveData();
+            closeCategoryModal();
+        }
+
+        function deleteCategory(catIndex) {
+            if (confirm('هل أنت متأكد من حذف هذه القائمة؟')) {
+                categories.splice(catIndex, 1);
+                saveData();
+            }
+        }
+
+        function openTenantModal(catIndex) {
+            currentCategoryIndex = catIndex;
+            document.getElementById('tenantNameInput').value = '';
+            document.getElementById('tenantPhoneInput').value = '';
+            document.getElementById('tenantPriceInput').value = '';
+            document.getElementById('tenantModal').style.display = 'flex';
+        }
+        function closeTenantModal() {
+            document.getElementById('tenantModal').style.display = 'none';
+        }
+        function saveTenant() {
+            let name = document.getElementById('tenantNameInput').value.trim();
+            let phone = document.getElementById('tenantPhoneInput').value.trim();
+            let price = document.getElementById('tenantPriceInput').value.trim();
+
+            if (!name || !price) return;
+
+            categories[currentCategoryIndex].tenants.push({
+                name: name,
+                phone: phone,
+                price: Number(price),
+                hasPaid: false,
+                lastPaidDate: new Date().toISOString()
+            });
+
+            saveData();
+            closeTenantModal();
+        }
+
+        function deleteTenant(catIndex, tenantIndex) {
+            categories[catIndex].tenants.splice(tenantIndex, 1);
+            saveData();
+        }
+
+        function togglePaid(catIndex, tenantIndex) {
+            let tenant = categories[catIndex].tenants[tenantIndex];
+            tenant.hasPaid = !tenant.hasPaid;
+            saveData();
+        }
+
+        function resetAllMonths() {
+            if (confirm('هل تريد تصفير جميع حالات الدفع لكل القوائم؟')) {
+                categories.forEach(cat => {
+                    cat.tenants.forEach(t => {
+                        t.hasPaid = false;
+                    });
+                });
+                saveData();
+            }
+        }
+
+        // تشغيل التطبيق عند تحميل الصفحة
+        window.onload = renderApp;
+    </script>
+</body>
+</html>
